@@ -189,7 +189,7 @@ public class HRController {
          HttpEntity<Employee> entity=new HttpEntity<>(headers);
          ResponseEntity<String> response = restTemplate.exchange(
          	    employeeServiceUrl,
-         	    HttpMethod.GET,
+         	    HttpMethod.DELETE,
          	    entity,
          	    String.class
          	);
