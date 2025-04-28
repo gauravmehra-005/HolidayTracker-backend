@@ -38,6 +38,8 @@ public class HRService {
     
     @Autowired
     RestTemplate restTemplate;
+    
+
   
     public HR registerHR(HR hr) {
     	hr.setEmail(hr.getEmail().toLowerCase());
@@ -78,7 +80,7 @@ public class HRService {
 	    HR hr = getHRByEmail(auth.getName());
 	    employee.setHrId(hr.getHrId());
 	    employeeServiceUrl+="/register-employee";
-	   
+	    
 	    HttpHeaders headers = new HttpHeaders();
 	    headers.setContentType(MediaType.APPLICATION_JSON);
 	    RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
@@ -89,7 +91,6 @@ public class HRService {
 	    String encodedSessionId = Base64.getEncoder().encodeToString(sessionId.getBytes());
 	    headers.add("Cookie", "SESSION=" + encodedSessionId + "; Path=/; HttpOnly");
 	    HttpEntity<Employee> httpEntity = new HttpEntity<>(employee, headers);
-	
 	    try {
 	        ResponseEntity<String> response = restTemplate.exchange(
 	            employeeServiceUrl,
