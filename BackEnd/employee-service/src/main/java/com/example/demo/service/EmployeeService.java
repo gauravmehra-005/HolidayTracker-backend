@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -25,8 +26,11 @@ public class EmployeeService {
     @Autowired
     RestTemplate restTemplate;
     
+    @Autowired
+    KafkaTemplate<String,Email> kafkaTemplate;
+    
 
-    private String emailServiceUrl="http://email-service/email/send";
+//    private String emailServiceUrl="http://email-service/email/send";
 
     public void registerEmployee(Employee employee) {
         // Check if employee with same email already exists
@@ -36,18 +40,20 @@ public class EmployeeService {
         }
         employee.setEmail(employee.getEmail().toLowerCase());
         employee.setRole("EMPLOYEE");
-        Email mail=new Email();
-	    mail.setTo(employee.getEmail());
-	    mail.setSubject("Login Details for Holiday Portal");
-	    final String pwd=employee.getPassword();
+        final String pwd=employee.getPassword();
 	    employee.setPassword(passwordEncoder.encode((employee.getPassword())));
-	    
 	    Employee e=employeeRepository.save(employee);
 	    
+	    Email mail=new Email();
+	    mail.setTo(employee.getEmail());
+	    mail.setSubject("Login Details for Holiday Portal");
 	    mail.setBody("Hi! "+e.getName()+"\nWelcome to Wissen!\n"+"Your Login Credentials\n"+
 	    		"Employee ID: "+e.getEid()+"\nPassword:"+pwd+"\nThanks & Regards\nHoliday Tracker Team");
-	    HttpEntity<Email> httpEntity=new HttpEntity<>(mail);
-        restTemplate.exchange(emailServiceUrl, HttpMethod.POST,httpEntity,String.class);
+	   
+	    kafkaTemplate.send("login-creds-email",mail.getTo(),mail);
+	    
+//	    HttpEntity<Email> httpEntity=new HttpEntity<>(mail);
+//      restTemplate.exchange(emailServiceUrl, HttpMethod.POST,httpEntity,String.class);
     }
 
     public Employee updateEmployee(Employee employee) {
