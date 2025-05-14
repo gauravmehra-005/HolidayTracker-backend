@@ -1,7 +1,10 @@
 package com.example.demo.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
-
+@NoArgsConstructor
+@AllArgsConstructor
 public class Email {
 	private String to;
 	private String subject;

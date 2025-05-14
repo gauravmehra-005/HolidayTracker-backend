@@ -2,9 +2,12 @@ package com.example.demo.service;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
+import com.example.demo.entity.Email;
 
 
 @Service
@@ -26,7 +29,11 @@ public class EmailService {
     	{
     		System.out.println(e.getMessage());
     	}
-    	
+    }
+    
+    @KafkaListener(topics="login-creds-email",groupId="user-creds-group")
+    public void consume(Email email) {
+    	sendMail(email.getTo(),email.getSubject(),email.getBody());
     }
 }
 
