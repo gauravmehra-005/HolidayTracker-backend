@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.entity.Employee;
+import com.example.demo.entity.PasswordDTO;
 import com.example.demo.service.EmployeeService;
 
 import jakarta.servlet.http.HttpSession;
@@ -76,5 +77,15 @@ public class EmployeeController {
 	  public ResponseEntity<String> deleteEmployee(@PathVariable Long eid){
 	      Employee e=employeeService.getEmployeeById(eid);
 	      return ResponseEntity.ok(employeeService.deleteEmployee(e));
+	  }
+	  @PatchMapping("/change-password/{eid}")
+	  public ResponseEntity<String> changePassword(@RequestBody PasswordDTO password, @PathVariable Long eid) {
+	      boolean success = employeeService.changePassword(eid, password);
+
+	      if (success) {
+	          return ResponseEntity.ok("Password changed successfully");
+	      } else {
+	          return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The password you provided was wrong");
+	      }
 	  }
 }

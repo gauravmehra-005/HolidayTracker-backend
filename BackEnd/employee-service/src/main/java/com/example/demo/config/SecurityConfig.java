@@ -20,6 +20,7 @@ public class SecurityConfig {
         http
             .csrf().disable()
             .authorizeHttpRequests()
+            .requestMatchers("/employee/change-password/**").permitAll()
             .requestMatchers("/employee/profile").hasRole("EMPLOYEE")
                 .requestMatchers("/employee/**").hasAnyRole("HR","ADMIN")
                 .anyRequest().authenticated();

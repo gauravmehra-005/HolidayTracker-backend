@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.demo.entity.Email;
 import com.example.demo.entity.Employee;
+import com.example.demo.entity.PasswordDTO;
 import com.example.demo.repo.EmployeeRepository;
 
 @Service
@@ -96,5 +97,27 @@ public class EmployeeService {
     
     public Employee getEmployeeById(Long id) {
         return employeeRepository.findById(id).orElse(null);
+    }
+    public boolean changePassword(Long eid,PasswordDTO password) {
+    	Employee e = getEmployeeById(eid);
+    	if(passwordEncoder.matches(password.getOldPassword(),e.getPassword() )) {
+    		e.setPassword(passwordEncoder.encode(password.getNewPassword()));
+    		employeeRepository.save(e);
+    		Email mail=new Email();
+    	    mail.setTo(e.getEmail());
+    	    mail.setSubject("Password Changed");
+    	    mail.setBody(
+    	    	    "Hi " + e.getName() + ",\n\n" +
+    	    	    "We wanted to let you know that your password for your Holiday Tracker account (Employee ID: " + e.getEid() + ") was successfully changed.\n\n" +
+    	    	    "If you did not initiate this change, please contact our support team immediately to secure your account.\n\n" +
+    	    	    "Thank you for using Holiday Tracker.\n\n" +
+    	    	    "Best regards,\n" +
+    	    	    "The Holiday Tracker Team"
+    	    	);
+
+    	    kafkaTemplate.send("login-creds-email",mail.getTo(),mail);
+    		return true;
+    	}
+    	return false;
     }
 }
