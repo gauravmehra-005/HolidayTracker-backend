@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +23,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.example.demo.entity.Email;
 import com.example.demo.entity.Employee;
 import com.example.demo.entity.HR;
 import com.example.demo.repo.HRRepository;
@@ -39,12 +41,31 @@ public class HRService {
     @Autowired
     RestTemplate restTemplate;
     
+    @Autowired
+    KafkaTemplate<String,Email> kafkaTemplate;
+    
 
-  
+
     public HR registerHR(HR hr) {
-    	hr.setEmail(hr.getEmail().toLowerCase());
-    	hr.setPassword(passwordEncoder.encode(hr.getPassword()));
-        return hrRepository.save(hr);
+        // Check if employee with same email already exists
+        HR existingHR = hrRepository.findByEmail(hr.getEmail().toLowerCase()).orElse(null);
+        if (existingHR != null) {
+            throw new RuntimeException("HR with email " + hr.getEmail() + " already exists");
+        }
+        hr.setEmail(hr.getEmail().toLowerCase());
+        hr.setRole("HR");
+        final String pwd=hr.getPassword();
+	    hr.setPassword(passwordEncoder.encode((hr.getPassword())));
+	    HR e=hrRepository.save(hr);
+	    
+	    Email mail=new Email();
+	    mail.setTo(hr.getEmail());
+	    mail.setSubject("Login Details for Holiday Portal");
+	    mail.setBody("Hi! "+e.getName()+"\nWelcome to Wissen!\n"+"Your Login Credentials\n"+
+	    		"HR ID: "+e.getHrId()+"\nPassword:"+pwd+"\nThanks & Regards\nHoliday Tracker Team");
+	   
+	    kafkaTemplate.send("login-creds-email",mail.getTo(),mail);
+	    return hr;
     }
     
 
