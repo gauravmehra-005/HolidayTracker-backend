@@ -43,6 +43,11 @@ public class HolidayService {
 	public List<Holiday> getHolidayWithClientName(String clientName){
 		return holidayRepository.findByClientName(clientName);
 	}
+	
+	public String deleteHoliday(Long holidayId) {
+		holidayRepository.deleteById(holidayId);
+		return "Holiday is Deleted";
+	}
 
 
 }
