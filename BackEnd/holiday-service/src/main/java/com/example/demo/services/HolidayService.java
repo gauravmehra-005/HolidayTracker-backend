@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.example.demo.entities.Holiday;
 import com.example.demo.repos.HolidayRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class HolidayService {
 	
@@ -28,11 +30,17 @@ public class HolidayService {
         Optional<Holiday> holiday = holidayRepository.findByClientNameAndHolidayDate(clientName, holidayDate);
         return holiday.map(Holiday::getHolidayId).orElse(null);
     }
-	
+
+    @Transactional
+    public void deleteHoliday(Long holidayId) {
+    	holidayRepository.deleteByHolidayId(holidayId);
+
+    }
 	
 	public Holiday updateHoliday(Long holidayId, Holiday updatedHoliday) {
 	    return holidayRepository.findById(holidayId)
 	        .map(existingHoliday -> {
+	        	existingHoliday.setName(updatedHoliday.getName());
 	            existingHoliday.setHolidayDate(updatedHoliday.getHolidayDate());
 	            existingHoliday.setDescription(updatedHoliday.getDescription());
 	            return holidayRepository.save(existingHoliday); 
