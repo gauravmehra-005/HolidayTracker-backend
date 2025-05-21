@@ -46,7 +46,6 @@ public class HolidayController {
 		return ResponseEntity.ok(holidayService.updateHoliday(holidayId,holiday));
 	}
 	
-	
 	@GetMapping("/get/{clientName}")
 	public ResponseEntity<List<Holiday>> getHolidayWithClientName(@PathVariable String clientName ) {
 		return ResponseEntity.ok(holidayService.getHolidayWithClientName(clientName));
