@@ -52,11 +52,8 @@ public class HolidayController {
 	}
 	
 	@DeleteMapping("/delete/{holidayId}")
-	public ResponseEntity<String> deleteHoliday(@PathVariable Long holidayId)
-	{
-		holidayService.deleteHoliday(holidayId);
-		return ResponseEntity.ok("Deleted");
+	public ResponseEntity<String> deleteHoliday(@PathVariable long holidayId){
+		return ResponseEntity.ok(holidayService.deleteHoliday(holidayId));
 	}
-	
 	
 }
