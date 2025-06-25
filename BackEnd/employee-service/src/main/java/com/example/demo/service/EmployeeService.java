@@ -1,5 +1,6 @@
 package com.example.demo.service;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -34,25 +35,30 @@ public class EmployeeService {
 //    private String emailServiceUrl="http://email-service/email/send";
 
     public void registerEmployee(Employee employee) {
-        // Check if employee with same email already exists
+        // Check for existing email
         Employee existingEmployee = employeeRepository.findByEmail(employee.getEmail().toLowerCase()).orElse(null);
         if (existingEmployee != null) {
             throw new RuntimeException("Employee with email " + employee.getEmail() + " already exists");
         }
+
         employee.setEmail(employee.getEmail().toLowerCase());
         employee.setRole("EMPLOYEE");
-        final String pwd=employee.getPassword();
-	    employee.setPassword(passwordEncoder.encode((employee.getPassword())));
-	    Employee e=employeeRepository.save(employee);
-	    
-	    Email mail=new Email();
-	    mail.setTo(employee.getEmail());
-	    mail.setSubject("Login Details for Holiday Portal");
-	    mail.setBody("Hi! "+e.getName()+"\nWelcome to Wissen!\n"+"Your Login Credentials\n"+
-	    		"Employee ID: "+e.getEid()+"\nPassword:"+pwd+"\nThanks & Regards\nHoliday Tracker Team");
-	   
-	    kafkaTemplate.send("login-creds-email",mail.getTo(),mail);
-	    
+        final String pwd = employee.getPassword();
+        employee.setPassword(passwordEncoder.encode(pwd));
+        Employee savedEmployee = employeeRepository.save(employee);
+
+        Email mail = new Email();
+        mail.setTo(employee.getEmail());
+        mail.setSubject("Login Details for Holiday Portal");
+        mail.setBody("Hi! " + savedEmployee.getName() + "\nWelcome to Wissen!\n" +
+                     "Your Login Credentials\nEmployee ID: " + savedEmployee.getEid() +
+                     "\nPassword: " + pwd + "\nThanks & Regards\nHoliday Tracker Team");
+
+        try {
+            kafkaTemplate.send("login-creds-email", mail.getTo(), mail).get(5, TimeUnit.SECONDS); // timeout
+        } catch (Exception ex) {
+            System.err.println("Kafka error: " + ex.getMessage());
+        }
 //	    HttpEntity<Email> httpEntity=new HttpEntity<>(mail);
 //      restTemplate.exchange(emailServiceUrl, HttpMethod.POST,httpEntity,String.class);
     }
